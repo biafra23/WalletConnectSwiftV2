@@ -21,18 +21,18 @@ struct WelcomeView: View {
             .edgesIgnoringSafeArea(.all)
             
             VStack(spacing: 0) {
-                Text("Welcome")
-                    .foregroundColor(.grey8)
-                    .font(.system(size: 34, weight: .bold, design: .rounded))
+//                Text("Welcome")
+//                    .foregroundColor(.grey8)
+//                    .font(.system(size: 34, weight: .bold, design: .rounded))
+//
+//                Text("We made this Example Wallet App to help developers integrate the WalletConnect SDK and provide an amazing experience to their users.")
+//                    .foregroundColor(.grey50)
+//                    .font(.system(size: 15, weight: .medium, design: .rounded))
+//                    .multilineTextAlignment(.center)
+//                    .lineSpacing(3)
+//                    .padding(.top, 10)
                 
-                Text("We made this Example Wallet App to help developers integrate the WalletConnect SDK and provide an amazing experience to their users.")
-                    .foregroundColor(.grey50)
-                    .font(.system(size: 15, weight: .medium, design: .rounded))
-                    .multilineTextAlignment(.center)
-                    .lineSpacing(3)
-                    .padding(.top, 10)
-                
-                Spacer()
+//                Spacer()
                 
                 Button {
                     presenter.onGetStarted()
