@@ -6,6 +6,7 @@ import WalletConnectNetworking
 import WalletConnectRelay
 import WalletConnectPairing
 import Combine
+import Web3Wallet
 
 class SceneDelegate: UIResponder, UIWindowSceneDelegate {
 
@@ -42,7 +43,7 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
 
         let wcUri = url.absoluteString.deletingPrefix("https://walletconnect.com/wc?uri=")
         Task(priority: .high) {
-            try! await Pair.instance.pair(uri: WalletConnectURI(string: wcUri)!)
+            try! await Web3Wallet.instance.pair(uri: WalletConnectURI(string: wcUri)!)
         }
     }
 }

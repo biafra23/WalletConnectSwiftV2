@@ -5,6 +5,8 @@ import WalletConnectPairing
 import WalletConnectRouter
 import Web3
 import CryptoSwift
+import Web3Wallet
+
 import Combine
 
 final class WalletViewController: UIViewController {
@@ -44,7 +46,7 @@ final class WalletViewController: UIViewController {
     }
 
     private func setUpSessions() {
-        reloadSessions(Sign.instance.getSessions())
+        reloadSessions(Web3Wallet.instance.getSessions())
     }
 
     @objc
@@ -109,7 +111,7 @@ final class WalletViewController: UIViewController {
         print("[WALLET] Respond on Sign")
         Task {
             do {
-                try await Sign.instance.respond(topic: request.topic, requestId: request.id, response: .response(response))
+                try await Web3Wallet.instance.respond(topic: request.topic, requestId: request.id, response: .response(response))
             } catch {
                 print("[DAPP] Respond Error: \(error.localizedDescription)")
             }
@@ -121,7 +123,7 @@ final class WalletViewController: UIViewController {
         print("[WALLET] Respond on Reject")
         Task {
             do {
-                try await Sign.instance.respond(
+                try await Web3Wallet.instance.respond(
                     topic: request.topic,
                     requestId: request.id,
                     response: .error(.init(code: 0, message: ""))
@@ -137,7 +139,7 @@ final class WalletViewController: UIViewController {
         print("[WALLET] Pairing to: \(uri)")
         Task {
             do {
-                try await Pair.instance.pair(uri: uri)
+                try await Web3Wallet.instance.pair(uri: uri)
             } catch {
                 print("[DAPP] Pairing connect error: \(error)")
             }
@@ -149,7 +151,7 @@ final class WalletViewController: UIViewController {
         print("[WALLET] Approve Session: \(proposalId)")
         Task {
             do {
-                try await Sign.instance.approve(proposalId: proposalId, namespaces: namespaces)
+                try await Web3Wallet.instance.approve(proposalId: proposalId, namespaces: namespaces)
             } catch {
                 print("[DAPP] Approve Session error: \(error)")
             }
@@ -161,7 +163,7 @@ final class WalletViewController: UIViewController {
         print("[WALLET] Reject Session: \(proposalId)")
         Task {
             do {
-                try await Sign.instance.reject(proposalId: proposalId, reason: reason)
+                try await Web3Wallet.instance.reject(proposalId: proposalId, reason: reason)
             } catch {
                 print("[DAPP] Reject Session error: \(error)")
             }
@@ -187,7 +189,7 @@ extension WalletViewController: UITableViewDataSource, UITableViewDelegate {
             let item = sessionItems[indexPath.row]
             Task {
                 do {
-                    try await Sign.instance.disconnect(topic: item.topic)
+                    try await Web3Wallet.instance.disconnect(topic: item.topic)
                 } catch {
                     print(error)
                 }
@@ -202,7 +204,7 @@ extension WalletViewController: UITableViewDataSource, UITableViewDelegate {
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         print("did select row \(indexPath)")
         let itemTopic = sessionItems[indexPath.row].topic
-        if let session = Sign.instance.getSessions().first(where: {$0.topic == itemTopic}) {
+        if let session = Web3Wallet.instance.getSessions().first(where: {$0.topic == itemTopic}) {
             showSessionDetails(with: session)
         }
     }
@@ -242,7 +244,7 @@ extension WalletViewController: ProposalViewControllerDelegate {
 
 extension WalletViewController {
     func setUpAuthSubscribing() {
-        Sign.instance.socketConnectionStatusPublisher
+        Web3Wallet.instance.socketConnectionStatusPublisher
             .receive(on: DispatchQueue.main)
             .sink { [weak self] status in
                 if status == .connected {
@@ -252,28 +254,31 @@ extension WalletViewController {
             }.store(in: &publishers)
 
         // TODO: Adapt proposal data to be used on the view
-        Sign.instance.sessionProposalPublisher
+        Web3Wallet.instance.sessionProposalPublisher
             .receive(on: DispatchQueue.main)
             .sink { [weak self] sessionProposal in
                 print("[RESPONDER] WC: Did receive session proposal")
+
                 self?.currentProposal = sessionProposal
-                    self?.showSessionProposal(Proposal(proposal: sessionProposal)) // FIXME: Remove mock
+                self?.didApproveSession()
+
+//                    self?.showSessionProposal(Proposal(proposal: sessionProposal)) // FIXME: Remove mock
             }.store(in: &publishers)
 
-        Sign.instance.sessionRequestPublisher
+        Web3Wallet.instance.sessionRequestPublisher
             .receive(on: DispatchQueue.main)
             .sink { [weak self] sessionRequest in
                 print("[RESPONDER] WC: Did receive session request")
                 self?.showSessionRequest(sessionRequest)
             }.store(in: &publishers)
 
-        Sign.instance.sessionDeletePublisher
+        Web3Wallet.instance.sessionDeletePublisher
             .receive(on: DispatchQueue.main)
             .sink { [weak self] _ in
                 self?.navigationController?.popToRootViewController(animated: true)
             }.store(in: &publishers)
 
-        Sign.instance.sessionsPublisher
+        Web3Wallet.instance.sessionsPublisher
             .receive(on: DispatchQueue.main)
             .sink { [weak self] sessions in
                 self?.reloadSessions(sessions)
